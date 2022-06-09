@@ -7,13 +7,14 @@
 
 from io import BufferedReader, BufferedWriter
 import struct
+from typing import Tuple
 
 from libmidi.types.chunk import Chunk
 
 class Header(object):
 	"""
 	Class representing a MIDI header.
-	
+
 	A MIDI header is a chunk that starts with the string 'MThd' and
 	contains the following data:
 	- format: Overall organization of MIDI file.
@@ -33,7 +34,7 @@ class Header(object):
 		self.division = division
 
 	@classmethod
-	def from_bytes(cls, data: bytes):
+	def from_bytes(cls, data: bytes) -> Tuple['Header', bytes]:
 		chunk, remaining_bytes = Chunk.from_bytes(data)
 
 		assert chunk.name == cls.HEADER, "Expected MThd chunk"
@@ -41,7 +42,7 @@ class Header(object):
 
 		format, ntrks, division = struct.unpack(">HHH", chunk.data)
 
-		return cls(format, ntrks, division)
+		return cls(format, ntrks, division), remaining_bytes
 
 	@classmethod
 	def from_stream(cls, stream: BufferedReader):

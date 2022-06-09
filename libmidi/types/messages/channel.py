@@ -44,9 +44,11 @@ class BaseMessageChannel(BaseMessage):
 	channel_message_type: ChannelMessageType
 
 	def __init__(self, channel: int):
+		"""Initialize a channel message."""
 		self.channel = channel
 
 	def __str__(self) -> str:
+		"""Return a string representation of the message."""
 		return (
 			super().__str__()
 			+ f", channel message type: {self.channel_message_type.name}"
@@ -65,7 +67,7 @@ class BaseMessageChannel(BaseMessage):
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
-		status_byte, channel, remaining_data = cls._get_status_data(data)
+		_, channel, remaining_data = cls._get_status_data(data)
 
 		message_data, remaining_data = get_data_from_bytes(remaining_data, len(cls.attributes))
 
@@ -95,6 +97,7 @@ class MessageNoteOff(BaseMessageChannel):
 	attributes = ['note', 'velocity']
 
 	def __init__(self, channel: int, note: int, velocity: int):
+		"""Initialize a note off message."""
 		super().__init__(channel)
 
 		self.note = note
@@ -105,6 +108,7 @@ class MessageNoteOn(BaseMessageChannel):
 	attributes = ['note', 'velocity']
 
 	def __init__(self, channel: int, note: int, velocity: int):
+		"""Initialize a note on message."""
 		super().__init__(channel)
 
 		self.note = note
@@ -115,6 +119,7 @@ class MessageAftertouch(BaseMessageChannel):
 	attributes = ['note', 'value']
 
 	def __init__(self, channel: int, note: int, value: int):
+		"""Initialize an aftertouch message."""
 		super().__init__(channel)
 
 		self.note = note
@@ -125,6 +130,7 @@ class MessageControlChange(BaseMessageChannel):
 	attributes = ['control', 'value']
 
 	def __init__(self, channel: int, control: int, value: int):
+		"""Initialize a control change message."""
 		super().__init__(channel)
 
 		self.control = control
@@ -135,6 +141,7 @@ class MessageProgramChange(BaseMessageChannel):
 	attributes = ['program']
 
 	def __init__(self, channel: int, program: int):
+		"""Initialize a program change message."""
 		super().__init__(channel)
 
 		self.program = program
@@ -144,6 +151,7 @@ class MessageChannelAftertouch(BaseMessageChannel):
 	attributes = ['value']
 
 	def __init__(self, channel: int, value: int):
+		"""Initialize a channel aftertouch message."""
 		super().__init__(channel)
 
 		self.value = value
@@ -153,6 +161,7 @@ class MessagePitchBend(BaseMessageChannel):
 	attributes = ['value_lsb', 'value_msb']
 
 	def __init__(self, channel: int, value_lsb: int, value_msb: int):
+		"""Initialize a pitch bend message."""
 		super().__init__(channel)
 
 		self.value_lsb = value_lsb
@@ -161,6 +170,7 @@ class MessagePitchBend(BaseMessageChannel):
 		self.value = (value_msb << 7) | value_lsb
 
 def channel_message_from_bytes(data: bytes) -> Tuple[BaseMessageChannel, bytes]:
+	"""Get a channel message from bytes."""
 	message: BaseMessage = None
 	remaining_data = None
 

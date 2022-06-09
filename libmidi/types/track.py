@@ -22,6 +22,7 @@ class Track:
 	HEADER = b'MTrk'
 
 	def __init__(self, events: List[Event] = None):
+		"""Initialize a track."""
 		self.events = events or []
 
 	@classmethod

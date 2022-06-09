@@ -35,6 +35,7 @@ class BaseMessageSystem(BaseMessage):
 	system_message_type: SystemMessageType
 
 	def __str__(self) -> str:
+		"""Return a string representation of the message."""
 		return (
 			super().__str__()
 			+ f", system message type: {self.system_message_type.name}"
@@ -57,6 +58,7 @@ class MessageSystemExclusive(BaseMessageSystem):
 	attributes = ["data"]
 
 	def __init__(self, data: bytes):
+		"""Initialize a system exclusive message."""
 		self.data = data
 
 	def get_length(self) -> int:
@@ -64,7 +66,7 @@ class MessageSystemExclusive(BaseMessageSystem):
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
-		status_byte, system_message_type, remaining_data = cls._get_status_data(data)
+		_, system_message_type, remaining_data = cls._get_status_data(data)
 		cls._check_system_message_type(system_message_type)
 
 		data_length = 0
@@ -83,6 +85,7 @@ class MessageSystemTimeCodeQuarterFrame(BaseMessageSystem):
 	attributes = ["timecode_message_type", "values"]
 
 	def __init__(self, timecode_message_type: int, values: int):
+		"""Initialize a time code quarter frame message."""
 		self.timecode_message_type = timecode_message_type
 		self.values = values
 
@@ -106,6 +109,7 @@ class MessageSystemSongPositionPointer(BaseMessageSystem):
 	attributes = ["position"]
 
 	def __init__(self, position: int):
+		"""Initialize a song position pointer message."""
 		self.position = position
 
 	@classmethod
@@ -126,6 +130,7 @@ class MessageSystemSongSelect(BaseMessageSystem):
 	attributes = ["song_number"]
 
 	def __init__(self, song_number: int):
+		"""Initialize a song select message."""
 		self.song_number = song_number
 
 	@classmethod

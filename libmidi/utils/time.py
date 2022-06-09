@@ -25,7 +25,8 @@ def to_reltime(events: List[Event]):
 		now = event.delta_time
 
 def tick2second(tick, ticks_per_beat, tempo):
-	"""Convert absolute time in ticks to seconds.
+	"""
+	Convert absolute time in ticks to seconds.
 
 	Returns absolute time in seconds for a chosen MIDI file time
 	resolution (ticks per beat, also called PPQN or pulses per quarter
@@ -35,7 +36,8 @@ def tick2second(tick, ticks_per_beat, tempo):
 	return tick * scale
 
 def second2tick(second, ticks_per_beat, tempo):
-	"""Convert absolute time in seconds to ticks.
+	"""
+	Convert absolute time in seconds to ticks.
 
 	Returns absolute time in ticks for a chosen MIDI file time
 	resolution (ticks per beat, also called PPQN or pulses per quarter
@@ -45,7 +47,8 @@ def second2tick(second, ticks_per_beat, tempo):
 	return second / scale
 
 def bpm2tempo(bpm):
-	"""Convert beats per minute to MIDI file tempo.
+	"""
+	Convert beats per minute to MIDI file tempo.
 
 	Returns microseconds per beat as an integer::
 
@@ -57,7 +60,8 @@ def bpm2tempo(bpm):
 	return int(round((60 * 1000000) / bpm))
 
 def tempo2bpm(tempo):
-	"""Convert MIDI file tempo to BPM.
+	"""
+	Convert MIDI file tempo to BPM.
 
 	Returns BPM as an integer or float::
 

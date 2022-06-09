@@ -13,15 +13,17 @@ from libmidi.utils.variable_length import VariableInt
 class Event:
 	"""
 	Class representing a MIDI event.
-	
+
 	A MIDI event is a sequence of bytes that starts with a variable int delta time,
 	followed by a MIDI message.
 	"""
 	def __init__(self, delta_time: int, message: BaseMessage):
+		"""Initialize an event."""
 		self.delta_time = delta_time
 		self.message = message
 
 	def __str__(self):
+		"""Return a string representation of the event."""
 		return f"Delta time: {self.delta_time}, message: {self.message}"
 
 	def copy(self, **kwargs):

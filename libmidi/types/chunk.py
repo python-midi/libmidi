@@ -14,15 +14,17 @@ from libmidi.utils.bytes import get_data_from_bytes
 class Chunk:
 	"""
 	Class representing a MIDI chunk.
-	
+
 	A MIDI chunk is a sequence of bytes that starts with a 4-byte
 	string, followed by a 32-bit integer representing the size of the following data.
 	"""
 	def __init__(self, name: bytes, data: bytes):
+		"""Initialize a chunk."""
 		self.name = name
 		self.data = data
 
 	def __str__(self):
+		"""Return a string representation of the chunk."""
 		return f"Chunk(name={self.name}, length={self.get_length()})"
 
 	@classmethod

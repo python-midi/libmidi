@@ -52,10 +52,12 @@ ALL_META_MESSAGE_TYPES = [
 ]
 
 class BaseMessageMeta(BaseMessage):
+	"""Base class for all meta messages."""
 	message_type = MessageType.META
 	meta_message_type: MetaMessageType
 
 	def __str__(self) -> str:
+		"""Return a string representation of the message."""
 		return (
 			super().__str__()
 			+ f", meta message type: {self.meta_message_type.name}"
@@ -73,7 +75,7 @@ class BaseMessageMeta(BaseMessage):
 
 	@classmethod
 	def _get_meta_message_data(cls, data: bytes) -> Tuple[bytes, bytes]:
-		status_byte, system_message_type, remaining_data = cls._get_status_data(data)
+		_, _, remaining_data = cls._get_status_data(data)
 
 		meta_message_type, remaining_data = get_data_from_bytes(remaining_data, 1)
 		meta_message_type = meta_message_type[0]
@@ -101,6 +103,7 @@ class MessageMetaSequenceNumber(BaseMessageMeta):
 	attributes = ['sequence_number']
 
 	def __init__(self, sequence_number: int):
+		"""Initialize a meta sequence message."""
 		self.sequence_number = sequence_number
 
 	@classmethod
@@ -125,6 +128,7 @@ class BaseMessageMetaText(BaseMessageMeta):
 	attributes = ['text']
 
 	def __init__(self, text: str):
+		"""Initialize a meta text message."""
 		self.text = text
 
 	@classmethod
@@ -168,6 +172,7 @@ class MessageMetaChannelPrefix(BaseMessageMeta):
 	attributes = ['channel_prefix']
 
 	def __init__(self, channel_prefix: int):
+		"""Initialize a meta channel prefix message."""
 		self.channel_prefix = channel_prefix
 
 	@classmethod
@@ -202,8 +207,9 @@ class MessageMetaSetTempo(BaseMessageMeta):
 	attributes = ['tempo']
 
 	def __init__(self, tempo: int):
+		"""Initialize a meta set tempo message."""
 		self.tempo = tempo
-	
+
 	@classmethod
 	def from_bytes(cls, data: bytes):
 		meta_message_type, data, remaining_data = cls._get_meta_message_data(data)
@@ -225,6 +231,7 @@ class MessageMetaSMPTEOffset(BaseMessageMeta):
 	attributes = ['hours', 'minutes', 'seconds', 'frames', 'sub_frames']
 
 	def __init__(self, hours: int, minutes: int, seconds: int, frames: int, sub_frames: int):
+		"""Initialize a meta SMPTE offset message."""
 		self.hours = hours
 		self.minutes = minutes
 		self.seconds = seconds
@@ -257,6 +264,7 @@ class MessageMetaTimeSignature(BaseMessageMeta):
 
 	def __init__(self, numerator: int, denominator: int,
 			clocks_per_metronome_click: int, number_of_32nd_notes_per_quarter_note: int):
+		"""Initialize a meta time signature message."""
 		self.numerator = numerator
 		self.denominator = denominator
 		self.clocks_per_metronome_click = clocks_per_metronome_click
@@ -283,6 +291,7 @@ class MessageMetaKeySignature(BaseMessageMeta):
 	attributes = ['key_signature', 'scale']
 
 	def __init__(self, key_signature: int, scale: int):
+		"""Initialize a meta key signature message."""
 		self.key_signature = key_signature
 		self.scale = scale
 
@@ -306,8 +315,9 @@ class MessageMetaSequencerSpecific(BaseMessageMeta):
 	attributes = ['data']
 
 	def __init__(self, data: bytes):
+		"""Initialize a meta sequencer specific message."""
 		self.data = data
-	
+
 	@classmethod
 	def from_bytes(cls, data: bytes):
 		meta_message_type, data, remaining_data = cls._get_meta_message_data(data)
@@ -346,7 +356,6 @@ class MessageMetaUnknown(BaseMessageMeta):
 
 def meta_message_from_bytes(data: bytes) -> Tuple[BaseMessageMeta, bytes]:
 	"""Get a meta message object from bytes."""
-
 	message: BaseMessageMeta = None
 	remaining_data = None
 

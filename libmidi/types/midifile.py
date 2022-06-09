@@ -37,11 +37,13 @@ class MidiFile:
 	             tracks: List[Track] = None,
 	             division: int = DEFAULT_TICKS_PER_BEAT,
 	            ):
+		"""Initialize a new MIDI file."""
 		self.format = format
 		self.tracks = tracks or []
 		self.division = division
 
 	def __iter__(self):
+		"""Iterate over all events in the MIDI file."""
 		# The tracks of type 2 files are not in sync, so they can
 		# not be played back like this.
 		if self.format == 2:
@@ -159,7 +161,8 @@ class MidiFile:
 		yield Event(accum, MessageMetaEndOfTrack())
 
 	def merge_tracks(self):
-		"""Returns a MidiTrack object with all messages from all tracks.
+		"""
+		Returns a MidiTrack object with all messages from all tracks.
 
 		The messages are returned in playback order with delta times
 		as if they were all in one track.
