@@ -18,7 +18,6 @@ class Track:
 	A MIDI track is a sequence of MIDI events.
 	It starts with a header chunk and ends with a end of track meta message.
 	"""
-
 	HEADER = b'MTrk'
 
 	def __init__(self, events: List[Event] = None):
@@ -26,7 +25,7 @@ class Track:
 		self.events = events or []
 
 	@classmethod
-	def from_stream(cls, stream: BufferedReader):
+	def from_stream(cls, stream: BufferedReader) -> 'Track':
 		"""Read a track from a stream."""
 		events = []
 		chunk = Chunk.from_stream(stream)
@@ -47,6 +46,10 @@ class Track:
 		chunk = Chunk(name=self.HEADER, data=b''.join(event.to_bytes() for event in self.events))
 		return chunk.to_bytes()
 
-	def to_stream(self, stream: BufferedReader):
-		"""Write a track to a stream."""
-		stream.write(self.to_bytes())
+	def to_stream(self, stream: BufferedReader) -> int:
+		"""
+		Write a track to a stream.
+
+		Returns the number of bytes written.
+		"""
+		return stream.write(self.to_bytes())

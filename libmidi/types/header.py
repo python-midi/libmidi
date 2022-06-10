@@ -24,7 +24,6 @@ class Header(object):
 	- ntrks: Number of tracks in the file.
 	- division: The number of ticks per quarter note.
 	"""
-
 	HEADER = b'MThd'
 
 	def __init__(self, format: int, ntrks: int, division: int):
@@ -45,7 +44,7 @@ class Header(object):
 		return cls(format, ntrks, division), remaining_bytes
 
 	@classmethod
-	def from_stream(cls, stream: BufferedReader):
+	def from_stream(cls, stream: BufferedReader) -> 'Header':
 		"""Read header from stream."""
 		chunk = Chunk.from_stream(stream)
 
@@ -64,5 +63,9 @@ class Header(object):
 		return chunk.to_bytes()
 
 	def to_stream(self, stream: BufferedWriter) -> int:
-		"""Write header to stream."""
+		"""
+		Write header to stream.
+
+		Returns the number of bytes written.
+		"""
 		return stream.write(self.to_bytes())

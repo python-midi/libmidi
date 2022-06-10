@@ -64,7 +64,8 @@ class MidiFile:
 				tempo = event.message.tempo
 
 	@classmethod
-	def from_stream(cls, stream: BufferedReader):
+	def from_stream(cls, stream: BufferedReader) -> 'MidiFile':
+		"""Read a MIDI file from a stream."""
 		tracks = []
 
 		header = Header.from_stream(stream)
@@ -77,20 +78,24 @@ class MidiFile:
 		return cls(header.format, tracks, header.division)
 
 	@classmethod
-	def from_file(cls, filename: Union[Path, str]):
+	def from_file(cls, filename: Union[Path, str]) -> 'MidiFile':
 		"""Read a MIDI file from a file."""
 		with Path(filename).open('rb') as f:
 			return cls.from_stream(f)
 
-	def to_bytes(self):
+	def to_bytes(self) -> bytes:
 		"""Return the MIDI file as a byte string."""
 		header = Header(self.format, self.division, len(self.tracks))
 		return header.to_bytes() + b''.join(track.to_bytes() for track in self.tracks)
 
-	def to_file(self, filename: Union[Path, str]):
-		"""Write the MIDI file to a file."""
+	def to_file(self, filename: Union[Path, str]) -> int:
+		"""
+		Write the MIDI file to a file.
+
+		Returns the number of bytes written.
+		"""
 		with Path(filename).open('wb') as f:
-			f.write(self.to_bytes())
+			return f.write(self.to_bytes())
 
 	def get_length(self):
 		"""

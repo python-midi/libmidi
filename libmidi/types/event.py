@@ -22,11 +22,12 @@ class Event:
 		self.delta_time = delta_time
 		self.message = message
 
-	def __str__(self):
+	def __str__(self) -> str:
 		"""Return a string representation of the event."""
 		return f"Delta time: {self.delta_time}, message: {self.message}"
 
-	def copy(self, **kwargs):
+	def copy(self, **kwargs) -> 'Event':
+		"""Return a copy of the event."""
 		if "delta_time" not in kwargs:
 			kwargs["delta_time"] = self.delta_time
 		if "message" not in kwargs:

@@ -23,7 +23,7 @@ class Chunk:
 		self.name = name
 		self.data = data
 
-	def __str__(self):
+	def __str__(self) -> str:
 		"""Return a string representation of the chunk."""
 		return f"Chunk(name={self.name}, length={self.get_length()})"
 
@@ -37,7 +37,7 @@ class Chunk:
 		return Chunk(name, chunk_data), remaining_data
 
 	@classmethod
-	def from_stream(cls, buffer: BufferedReader):
+	def from_stream(cls, buffer: BufferedReader) -> 'Chunk':
 		"""Read a chunk from a stream."""
 		name, length = struct.unpack('>4sL', buffer.read(8))
 		data = buffer.read(length)

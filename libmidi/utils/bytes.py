@@ -5,5 +5,8 @@
 #
 """bytes utils."""
 
-def get_data_from_bytes(data: bytes, size: int):
+from typing import Tuple
+
+def get_data_from_bytes(data: bytes, size: int) -> Tuple[bytes, bytes]:
+	"""Pop footer bytes from data and return the rest."""
 	return data[:size], data[size:]

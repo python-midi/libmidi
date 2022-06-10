@@ -13,6 +13,11 @@ from libmidi.types.messages.system import ALL_SYSTEM_MESSAGE_TYPES, system_messa
 from libmidi.types.messages.meta import meta_message_from_bytes
 
 def message_from_bytes(data: bytes, last_status_byte: int) -> Tuple[BaseMessage, bytes]:
+	"""
+	Get a message object from bytes.
+
+	Returns the message object and the remaining bytes.
+	"""
 	message: BaseMessage = None
 	remaining_data = None
 
