@@ -139,7 +139,7 @@ class MidiFile:
 			if isinstance(event.message, BaseMessageMeta) and not meta_messages:
 				continue
 			else:
-				yield event
+				yield event.message
 
 	@staticmethod
 	def _fix_end_of_track(events: List[Event]):
