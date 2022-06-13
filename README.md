@@ -1,7 +1,7 @@
 # libmidi
 
 [![PyPi version](https://img.shields.io/pypi/v/libmidi)](https://pypi.org/project/libmidi/)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/dd2f2a04bd6c4165b3e6ea361df9cfa5)](https://www.codacy.com/gh/SebaUbuntu/libmidi/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SebaUbuntu/libmidi&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/e9bb9f5cc25b4229aae9a02ec67b6236)](https://www.codacy.com/gh/python-midi/libmidi/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=python-midi/libmidi&amp;utm_campaign=Badge_Grade)
 [![Documentation Status](https://readthedocs.org/projects/libmidi/badge/?version=latest)](https://libmidi.readthedocs.io/en/latest/?badge=latest)
 
 libmidi is a MIDI library written from scratch with object oriented programming and proper typing in mind, while trying to keep overhead as minimal as possible.
