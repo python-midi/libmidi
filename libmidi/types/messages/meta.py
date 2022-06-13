@@ -13,7 +13,7 @@ from libmidi.utils.bytes import get_data_from_bytes
 from libmidi.types.messages.common import BaseMessage, MessageType
 from libmidi.utils.variable_length import VariableInt
 
-SYSTEM_MESSAGE_VALUE = 0xFF
+META_MESSAGE_VALUE = 0xFF
 
 class MetaMessageType(IntEnum):
 	"""Enum of meta message types."""
@@ -65,13 +65,13 @@ class BaseMessageMeta(BaseMessage):
 
 	@classmethod
 	def _assert_status_byte(cls, status_byte: int):
-		assert status_byte == SYSTEM_MESSAGE_VALUE, "Invalid status byte"
+		assert status_byte == META_MESSAGE_VALUE, "Invalid status byte"
 
 	def get_length(self) -> int:
 		return super().get_length() + 1
 
 	def get_status_byte(self) -> int:
-		return 0xFF
+		return META_MESSAGE_VALUE
 
 	@classmethod
 	def _get_meta_message_data(cls, data: bytes) -> Tuple[bytes, bytes]:
@@ -361,7 +361,7 @@ def meta_message_from_bytes(data: bytes) -> Tuple[BaseMessageMeta, bytes]:
 
 	message_status = data[0]
 
-	assert message_status == SYSTEM_MESSAGE_VALUE, "Invalid system message type"
+	assert message_status == META_MESSAGE_VALUE, "Invalid meta message type"
 
 	meta_message_type = data[1]
 	try:

@@ -15,12 +15,12 @@ SYSTEM_MESSAGE_VALUE = 0xF
 
 class SystemMessageType(IntEnum):
 	"""Enum of system message types."""
-	SYSTEM_EXCLUSIVE = 0x0
-	TIME_CODE_QUARTER_FRAME = 0x1
-	SONG_POSITION_POINTER = 0x2
-	SONG_SELECT = 0x3
-	TUNE_REQUEST = 0x6
-	END_OF_EXCLUSIVE = 0x7
+	SYSTEM_EXCLUSIVE = 0xF0
+	TIME_CODE_QUARTER_FRAME = 0xF1
+	SONG_POSITION_POINTER = 0xF2
+	SONG_SELECT = 0xF3
+	TUNE_REQUEST = 0xF6
+	END_OF_EXCLUSIVE = 0xF7
 
 ALL_SYSTEM_MESSAGE_TYPES = [
 	SystemMessageType.SYSTEM_EXCLUSIVE,
@@ -42,12 +42,11 @@ class BaseMessageSystem(BaseMessage):
 		)
 
 	def get_status_byte(self):
-		return (self.message_type << 4) | self.system_message_type
+		return self.system_message_type
 
 	@classmethod
 	def _assert_status_byte(cls, status_byte: int):
-		assert status_byte == (cls.message_type << 4) | cls.system_message_type, (
-				"Invalid channel message type")
+		assert status_byte == cls.system_message_type, ("Invalid system message type")
 
 	@classmethod
 	def _check_system_message_type(cls, system_message_type: int) -> bool:
@@ -66,8 +65,7 @@ class MessageSystemExclusive(BaseMessageSystem):
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
-		_, system_message_type, remaining_data = cls._get_status_data(data)
-		cls._check_system_message_type(system_message_type)
+		_, _, remaining_data = cls._get_status_data(data)
 
 		data_length = 0
 		while remaining_data[data_length] != SystemMessageType.END_OF_EXCLUSIVE:
@@ -91,8 +89,7 @@ class MessageSystemTimeCodeQuarterFrame(BaseMessageSystem):
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
-		status_byte, system_message_type, remaining_data = cls._get_status_data(data)
-		cls._check_system_message_type(system_message_type)
+		_, _, remaining_data = cls._get_status_data(data)
 
 		data, remaining_data = get_data_from_bytes(remaining_data, 1)
 		data = data[0]
@@ -114,8 +111,7 @@ class MessageSystemSongPositionPointer(BaseMessageSystem):
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
-		status_byte, system_message_type, remaining_data = cls._get_status_data(data)
-		cls._check_system_message_type(system_message_type)
+		_, _, remaining_data = cls._get_status_data(data)
 
 		data, remaining_data = get_data_from_bytes(remaining_data, 2)
 		position = data[0] | (data[1] << 7)
@@ -135,8 +131,7 @@ class MessageSystemSongSelect(BaseMessageSystem):
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
-		status_byte, system_message_type, remaining_data = cls._get_status_data(data)
-		cls._check_system_message_type(system_message_type)
+		_, _, remaining_data = cls._get_status_data(data)
 
 		data, remaining_data = get_data_from_bytes(remaining_data, 1)
 		song_number = (data[0] << 7)
@@ -151,8 +146,7 @@ class MessageSystemTuneRequest(BaseMessageSystem):
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
-		status_byte, system_message_type, remaining_data = cls._get_status_data(data)
-		cls._check_system_message_type(system_message_type)
+		_, _, remaining_data = cls._get_status_data(data)
 
 		return cls(), remaining_data
 
@@ -165,21 +159,17 @@ def system_message_from_bytes(data: bytes) -> Tuple[BaseMessageSystem, bytes]:
 
 	message_status = data[0]
 
-	message_type, system_message_type = message_status >> 4, message_status & 0x0F
-
-	assert message_type == SYSTEM_MESSAGE_VALUE, "Invalid message type"
-
-	if system_message_type == SystemMessageType.SYSTEM_EXCLUSIVE:
+	if message_status == SystemMessageType.SYSTEM_EXCLUSIVE:
 		message, remaining_data = MessageSystemExclusive.from_bytes(data)
-	elif system_message_type == SystemMessageType.TIME_CODE_QUARTER_FRAME:
+	elif message_status == SystemMessageType.TIME_CODE_QUARTER_FRAME:
 		message, remaining_data = MessageSystemTimeCodeQuarterFrame.from_bytes(data)
-	elif system_message_type == SystemMessageType.SONG_POSITION_POINTER:
+	elif message_status == SystemMessageType.SONG_POSITION_POINTER:
 		message, remaining_data = MessageSystemSongPositionPointer.from_bytes(data)
-	elif system_message_type == SystemMessageType.SONG_SELECT:
+	elif message_status == SystemMessageType.SONG_SELECT:
 		message, remaining_data = MessageSystemSongSelect.from_bytes(data)
-	elif system_message_type == SystemMessageType.TUNE_REQUEST:
+	elif message_status == SystemMessageType.TUNE_REQUEST:
 		message, remaining_data = MessageSystemTuneRequest.from_bytes(data)
 	else:
-		raise ValueError(f"Invalid system message type {system_message_type}")
+		raise ValueError(f"Invalid system message type {message_status}")
 
 	return message, remaining_data
