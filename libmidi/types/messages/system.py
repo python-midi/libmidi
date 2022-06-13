@@ -48,10 +48,6 @@ class BaseMessageSystem(BaseMessage):
 	def _assert_status_byte(cls, status_byte: int):
 		assert status_byte == cls.system_message_type, ("Invalid system message type")
 
-	@classmethod
-	def _check_system_message_type(cls, system_message_type: int) -> bool:
-		assert system_message_type == cls.system_message_type, "Invalid system message type"
-
 class MessageSystemExclusive(BaseMessageSystem):
 	system_message_type = SystemMessageType.SYSTEM_EXCLUSIVE
 	attributes = ["data"]
