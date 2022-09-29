@@ -27,6 +27,7 @@ class MetaMessageType(IntEnum):
 	MARKER = 0x06
 	CUE_POINT = 0x07
 	CHANNEL_PREFIX = 0x20
+	PORT_PREFIX = 0x21
 	END_OF_TRACK = 0x2F
 	SET_TEMPO = 0x51
 	SMPTE_OFFSET = 0x54
@@ -43,6 +44,7 @@ ALL_META_MESSAGE_TYPES = [
 	MetaMessageType.MARKER,
 	MetaMessageType.CUE_POINT,
 	MetaMessageType.CHANNEL_PREFIX,
+	MetaMessageType.PORT_PREFIX,
 	MetaMessageType.END_OF_TRACK,
 	MetaMessageType.SET_TEMPO,
 	MetaMessageType.SMPTE_OFFSET,
@@ -188,6 +190,30 @@ class MessageMetaChannelPrefix(BaseMessageMeta):
 		return (
 			self._header_to_bytes()
 			+ self.channel_prefix.to_bytes(1, 'big')
+		)
+
+class MessageMetaPortPrefix(BaseMessageMeta):
+	meta_message_type = MetaMessageType.PORT_PREFIX
+	attributes = ['port_prefix']
+
+	def __init__(self, port_prefix: int):
+		"""Initialize a meta port prefix message."""
+		self.port_prefix = port_prefix
+
+	@classmethod
+	def from_bytes(cls, data: bytes):
+		meta_message_type, data, remaining_data = cls._get_meta_message_data(data)
+		assert len(data) == 1, f"Expected 1 byte, got {len(data)}"
+		port_prefix = int.from_bytes(data, 'big', signed=False)
+		return cls(port_prefix), remaining_data
+
+	def get_length(self) -> int:
+		return super().get_length() + 1
+
+	def to_bytes(self) -> bytes:
+		return (
+			self._header_to_bytes()
+			+ self.port_prefix.to_bytes(1, 'big')
 		)
 
 class MessageMetaEndOfTrack(BaseMessageMeta):
@@ -384,6 +410,8 @@ def meta_message_from_bytes(data: bytes) -> Tuple[BaseMessageMeta, bytes]:
 		message, remaining_data = MessageMetaCuePoint.from_bytes(data)
 	elif meta_message_type == MetaMessageType.CHANNEL_PREFIX:
 		message, remaining_data = MessageMetaChannelPrefix.from_bytes(data)
+	elif meta_message_type == MetaMessageType.PORT_PREFIX:
+		message, remaining_data = MessageMetaPortPrefix.from_bytes(data)
 	elif meta_message_type == MetaMessageType.END_OF_TRACK:
 		message, remaining_data = MessageMetaEndOfTrack.from_bytes(data)
 	elif meta_message_type == MetaMessageType.SET_TEMPO:
