@@ -5,18 +5,11 @@
 #
 """MIDI message."""
 
-from enum import Enum
 from typing import List, Tuple
 
 from libmidi.utils.bytes import get_data_from_bytes
 
-class MessageType(Enum):
-	CHANNEL = 0
-	SYSTEM = 1
-	META = 2
-
 class BaseMessage:
-	message_type: MessageType
 	attributes: List[str] = []
 
 	@classmethod
@@ -45,8 +38,7 @@ class BaseMessage:
 
 	def __str__(self) -> str:
 		return (
-			f"Message type: {self.message_type.name}"
-			f", length: {self.get_length()}"
+			f"Length: {self.get_length()}"
 			", " + ", ".join(f"{attr}: {getattr(self, attr)}" for attr in self.attributes)
 		)
 

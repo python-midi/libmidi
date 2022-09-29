@@ -10,7 +10,7 @@ import struct
 from typing import Tuple
 
 from libmidi.utils.bytes import get_data_from_bytes
-from libmidi.types.messages.common import BaseMessage, MessageType
+from libmidi.types.messages.common import BaseMessage
 
 class ChannelMessageType(IntEnum):
 	"""Enum of message types."""
@@ -39,8 +39,6 @@ class BaseMessageChannel(BaseMessage):
 	Since all channel messages have the same structure (at least a channel data +
 	8 bit data bytes), we can commonize a lot of methods.
 	"""
-
-	message_type = MessageType.CHANNEL
 	channel_message_type: ChannelMessageType
 
 	def __init__(self, channel: int):

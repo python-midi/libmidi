@@ -9,7 +9,7 @@ from enum import IntEnum
 from typing import Tuple
 
 from libmidi.utils.bytes import get_data_from_bytes
-from libmidi.types.messages.common import BaseMessage, MessageType
+from libmidi.types.messages.common import BaseMessage
 
 SYSTEM_MESSAGE_VALUE = 0xF
 
@@ -31,7 +31,6 @@ ALL_SYSTEM_MESSAGE_TYPES = [
 ]
 
 class BaseMessageSystem(BaseMessage):
-	message_type = MessageType.SYSTEM
 	system_message_type: SystemMessageType
 
 	def __str__(self) -> str:

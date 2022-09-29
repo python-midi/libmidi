@@ -10,7 +10,7 @@ from typing import Tuple
 import struct
 
 from libmidi.utils.bytes import get_data_from_bytes
-from libmidi.types.messages.common import BaseMessage, MessageType
+from libmidi.types.messages.common import BaseMessage
 from libmidi.utils.variable_length import VariableInt
 
 META_MESSAGE_VALUE = 0xFF
@@ -53,7 +53,6 @@ ALL_META_MESSAGE_TYPES = [
 
 class BaseMessageMeta(BaseMessage):
 	"""Base class for all meta messages."""
-	message_type = MessageType.META
 	meta_message_type: MetaMessageType
 
 	def __str__(self) -> str:
