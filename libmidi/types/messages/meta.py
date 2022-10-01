@@ -5,9 +5,8 @@
 #
 """MIDI meta message."""
 
-from enum import IntEnum
-from typing import Tuple
 import struct
+from typing import Dict, Tuple, Type
 
 from libmidi.utils.bytes import get_data_from_bytes
 from libmidi.types.messages.common import BaseMessage
@@ -15,47 +14,9 @@ from libmidi.utils.variable_length import VariableInt
 
 META_MESSAGE_VALUE = 0xFF
 
-class MetaMessageType(IntEnum):
-	"""Enum of meta message types."""
-	UNKNOWN = -1
-	SEQUENCE_NUMBER = 0x00
-	TEXT = 0x01
-	COPYRIGHT_NOTICE = 0x02
-	TRACK_NAME = 0x03
-	INSTRUMENT_NAME = 0x04
-	LYRIC = 0x05
-	MARKER = 0x06
-	CUE_POINT = 0x07
-	CHANNEL_PREFIX = 0x20
-	PORT_PREFIX = 0x21
-	END_OF_TRACK = 0x2F
-	SET_TEMPO = 0x51
-	SMPTE_OFFSET = 0x54
-	TIME_SIGNATURE = 0x58
-	KEY_SIGNATURE = 0x59
-	SEQUENCER_SPECIFIC = 0x7F
-
-ALL_META_MESSAGE_TYPES = [
-	MetaMessageType.TEXT,
-	MetaMessageType.COPYRIGHT_NOTICE,
-	MetaMessageType.TRACK_NAME,
-	MetaMessageType.INSTRUMENT_NAME,
-	MetaMessageType.LYRIC,
-	MetaMessageType.MARKER,
-	MetaMessageType.CUE_POINT,
-	MetaMessageType.CHANNEL_PREFIX,
-	MetaMessageType.PORT_PREFIX,
-	MetaMessageType.END_OF_TRACK,
-	MetaMessageType.SET_TEMPO,
-	MetaMessageType.SMPTE_OFFSET,
-	MetaMessageType.TIME_SIGNATURE,
-	MetaMessageType.KEY_SIGNATURE,
-	MetaMessageType.SEQUENCER_SPECIFIC,
-]
-
 class BaseMessageMeta(BaseMessage):
 	"""Base class for all meta messages."""
-	meta_message_type: MetaMessageType
+	meta_message_type: int
 
 	def __str__(self) -> str:
 		"""Return a string representation of the message."""
@@ -83,10 +44,10 @@ class BaseMessageMeta(BaseMessage):
 
 		length, remaining_data = VariableInt.from_bytes(remaining_data)
 
-		if cls.meta_message_type != MetaMessageType.UNKNOWN:
+		if cls.meta_message_type != -1:
 			assert meta_message_type == cls.meta_message_type, (
-				f"Expected meta message type {cls.meta_message_type.name}, got {meta_message_type}")
-		elif meta_message_type in ALL_META_MESSAGE_TYPES:
+				f"Expected meta message type {hex(cls.meta_message_type)}, got {hex(meta_message_type)}")
+		elif meta_message_type in META_MESSAGE_TYPES:
 			raise Exception("Using unknown meta message type on a well known type")
 
 		data, remaining_data = get_data_from_bytes(remaining_data, length)
@@ -100,7 +61,7 @@ class BaseMessageMeta(BaseMessage):
 		)
 
 class MessageMetaSequenceNumber(BaseMessageMeta):
-	meta_message_type = MetaMessageType.SEQUENCE_NUMBER
+	meta_message_type = 0x00
 	attributes = ['sequence_number']
 
 	def __init__(self, sequence_number: int):
@@ -125,7 +86,6 @@ class MessageMetaSequenceNumber(BaseMessageMeta):
 
 class BaseMessageMetaText(BaseMessageMeta):
 	"""Base class for meta messages with text."""
-
 	attributes = ['text']
 
 	def __init__(self, text: str):
@@ -148,28 +108,28 @@ class BaseMessageMetaText(BaseMessageMeta):
 		)
 
 class MessageMetaText(BaseMessageMetaText):
-	meta_message_type = MetaMessageType.TEXT
+	meta_message_type = 0x01
 
 class MessageMetaCopyrightNotice(BaseMessageMetaText):
-	meta_message_type = MetaMessageType.COPYRIGHT_NOTICE
+	meta_message_type = 0x02
 
 class MessageMetaTrackName(BaseMessageMetaText):
-	meta_message_type = MetaMessageType.TRACK_NAME
+	meta_message_type = 0x03
 
 class MessageMetaInstrumentName(BaseMessageMetaText):
-	meta_message_type = MetaMessageType.INSTRUMENT_NAME
+	meta_message_type = 0x04
 
 class MessageMetaLyric(BaseMessageMetaText):
-	meta_message_type = MetaMessageType.LYRIC
+	meta_message_type = 0x05
 
 class MessageMetaMarker(BaseMessageMetaText):
-	meta_message_type = MetaMessageType.MARKER
+	meta_message_type = 0x06
 
 class MessageMetaCuePoint(BaseMessageMetaText):
-	meta_message_type = MetaMessageType.CUE_POINT
+	meta_message_type = 0x07
 
 class MessageMetaChannelPrefix(BaseMessageMeta):
-	meta_message_type = MetaMessageType.CHANNEL_PREFIX
+	meta_message_type = 0x20
 	attributes = ['channel_prefix']
 
 	def __init__(self, channel_prefix: int):
@@ -193,7 +153,7 @@ class MessageMetaChannelPrefix(BaseMessageMeta):
 		)
 
 class MessageMetaPortPrefix(BaseMessageMeta):
-	meta_message_type = MetaMessageType.PORT_PREFIX
+	meta_message_type = 0x21
 	attributes = ['port_prefix']
 
 	def __init__(self, port_prefix: int):
@@ -217,7 +177,7 @@ class MessageMetaPortPrefix(BaseMessageMeta):
 		)
 
 class MessageMetaEndOfTrack(BaseMessageMeta):
-	meta_message_type = MetaMessageType.END_OF_TRACK
+	meta_message_type = 0x2F
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
@@ -228,7 +188,7 @@ class MessageMetaEndOfTrack(BaseMessageMeta):
 		return self._header_to_bytes()
 
 class MessageMetaSetTempo(BaseMessageMeta):
-	meta_message_type = MetaMessageType.SET_TEMPO
+	meta_message_type = 0x51
 	attributes = ['tempo']
 
 	def __init__(self, tempo: int):
@@ -252,7 +212,7 @@ class MessageMetaSetTempo(BaseMessageMeta):
 		)
 
 class MessageMetaSMPTEOffset(BaseMessageMeta):
-	meta_message_type = MetaMessageType.SMPTE_OFFSET
+	meta_message_type = 0x54
 	attributes = ['hours', 'minutes', 'seconds', 'frames', 'sub_frames']
 
 	def __init__(self, hours: int, minutes: int, seconds: int, frames: int, sub_frames: int):
@@ -279,7 +239,7 @@ class MessageMetaSMPTEOffset(BaseMessageMeta):
 		)
 
 class MessageMetaTimeSignature(BaseMessageMeta):
-	meta_message_type = MetaMessageType.TIME_SIGNATURE
+	meta_message_type = 0x58
 	attributes = [
 		'numerator',
 		'denominator',
@@ -312,7 +272,7 @@ class MessageMetaTimeSignature(BaseMessageMeta):
 		)
 
 class MessageMetaKeySignature(BaseMessageMeta):
-	meta_message_type = MetaMessageType.KEY_SIGNATURE
+	meta_message_type = 0x59
 	attributes = ['key_signature', 'scale']
 
 	def __init__(self, key_signature: int, scale: int):
@@ -336,7 +296,7 @@ class MessageMetaKeySignature(BaseMessageMeta):
 		)
 
 class MessageMetaSequencerSpecific(BaseMessageMeta):
-	meta_message_type = MetaMessageType.SEQUENCER_SPECIFIC
+	meta_message_type = 0x7F
 	attributes = ['data']
 
 	def __init__(self, data: bytes):
@@ -355,7 +315,7 @@ class MessageMetaSequencerSpecific(BaseMessageMeta):
 		return self._header_to_bytes() + self.data
 
 class MessageMetaUnknown(BaseMessageMeta):
-	meta_message_type = MetaMessageType.UNKNOWN
+	meta_message_type = -1
 	attributes = ['type_byte', 'data']
 
 	def __init__(self, type_byte: int, data: bytes):
@@ -379,52 +339,33 @@ class MessageMetaUnknown(BaseMessageMeta):
 	def to_bytes(self) -> bytes:
 		return self._header_to_bytes() + self.data
 
+META_MESSAGE_TYPES: Dict[int, Type[BaseMessageMeta]] = {
+	message_meta_type.meta_message_type: message_meta_type
+	for message_meta_type in [
+		MessageMetaSequenceNumber,
+		MessageMetaText,
+		MessageMetaCopyrightNotice,
+		MessageMetaTrackName,
+		MessageMetaInstrumentName,
+		MessageMetaLyric,
+		MessageMetaMarker,
+		MessageMetaCuePoint,
+		MessageMetaChannelPrefix,
+		MessageMetaPortPrefix,
+		MessageMetaEndOfTrack,
+		MessageMetaSetTempo,
+		MessageMetaSMPTEOffset,
+		MessageMetaTimeSignature,
+		MessageMetaKeySignature,
+		MessageMetaSequencerSpecific,
+	]
+}
+
 def meta_message_from_bytes(data: bytes) -> Tuple[BaseMessageMeta, bytes]:
 	"""Get a meta message object from bytes."""
-	message: BaseMessageMeta = None
-	remaining_data = None
+	assert data[0] == META_MESSAGE_VALUE, "Invalid meta message type"
 
-	message_status = data[0]
+	if data[1] in META_MESSAGE_TYPES:
+		return META_MESSAGE_TYPES[data[1]].from_bytes(data)
 
-	assert message_status == META_MESSAGE_VALUE, "Invalid meta message type"
-
-	meta_message_type = data[1]
-	try:
-		meta_message_type = MetaMessageType(meta_message_type)
-	except ValueError:
-		meta_message_type = MetaMessageType.UNKNOWN
-
-	if meta_message_type == MetaMessageType.TEXT:
-		message, remaining_data = MessageMetaText.from_bytes(data)
-	elif meta_message_type == MetaMessageType.COPYRIGHT_NOTICE:
-		message, remaining_data = MessageMetaCopyrightNotice.from_bytes(data)
-	elif meta_message_type == MetaMessageType.TRACK_NAME:
-		message, remaining_data = MessageMetaTrackName.from_bytes(data)
-	elif meta_message_type == MetaMessageType.INSTRUMENT_NAME:
-		message, remaining_data = MessageMetaInstrumentName.from_bytes(data)
-	elif meta_message_type == MetaMessageType.LYRIC:
-		message, remaining_data = MessageMetaLyric.from_bytes(data)
-	elif meta_message_type == MetaMessageType.MARKER:
-		message, remaining_data = MessageMetaMarker.from_bytes(data)
-	elif meta_message_type == MetaMessageType.CUE_POINT:
-		message, remaining_data = MessageMetaCuePoint.from_bytes(data)
-	elif meta_message_type == MetaMessageType.CHANNEL_PREFIX:
-		message, remaining_data = MessageMetaChannelPrefix.from_bytes(data)
-	elif meta_message_type == MetaMessageType.PORT_PREFIX:
-		message, remaining_data = MessageMetaPortPrefix.from_bytes(data)
-	elif meta_message_type == MetaMessageType.END_OF_TRACK:
-		message, remaining_data = MessageMetaEndOfTrack.from_bytes(data)
-	elif meta_message_type == MetaMessageType.SET_TEMPO:
-		message, remaining_data = MessageMetaSetTempo.from_bytes(data)
-	elif meta_message_type == MetaMessageType.SMPTE_OFFSET:
-		message, remaining_data = MessageMetaSMPTEOffset.from_bytes(data)
-	elif meta_message_type == MetaMessageType.TIME_SIGNATURE:
-		message, remaining_data = MessageMetaTimeSignature.from_bytes(data)
-	elif meta_message_type == MetaMessageType.KEY_SIGNATURE:
-		message, remaining_data = MessageMetaKeySignature.from_bytes(data)
-	elif meta_message_type == MetaMessageType.SEQUENCER_SPECIFIC:
-		message, remaining_data = MessageMetaSequencerSpecific.from_bytes(data)
-	elif meta_message_type == MetaMessageType.UNKNOWN:
-		message, remaining_data = MessageMetaUnknown.from_bytes(data)
-
-	return message, remaining_data
+	return MessageMetaUnknown.from_bytes(data)
