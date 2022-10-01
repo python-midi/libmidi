@@ -5,39 +5,23 @@
 #
 """MIDI system message."""
 
-from enum import IntEnum
-from typing import Tuple
+from typing import Dict, Tuple, Type
 
 from libmidi.utils.bytes import get_data_from_bytes
 from libmidi.types.messages.common import BaseMessage
 
 SYSTEM_MESSAGE_VALUE = 0xF
 
-class SystemMessageType(IntEnum):
-	"""Enum of system message types."""
-	SYSTEM_EXCLUSIVE = 0xF0
-	TIME_CODE_QUARTER_FRAME = 0xF1
-	SONG_POSITION_POINTER = 0xF2
-	SONG_SELECT = 0xF3
-	TUNE_REQUEST = 0xF6
-	END_OF_EXCLUSIVE = 0xF7
-
-ALL_SYSTEM_MESSAGE_TYPES = [
-	SystemMessageType.SYSTEM_EXCLUSIVE,
-	SystemMessageType.TIME_CODE_QUARTER_FRAME,
-	SystemMessageType.SONG_POSITION_POINTER,
-	SystemMessageType.SONG_SELECT,
-	SystemMessageType.TUNE_REQUEST,
-]
+END_OF_EXCLUSIVE = 0xF7
 
 class BaseMessageSystem(BaseMessage):
-	system_message_type: SystemMessageType
+	system_message_type: int
 
 	def __str__(self) -> str:
 		"""Return a string representation of the message."""
 		return (
 			super().__str__()
-			+ f", system message type: {self.system_message_type.name}"
+			+ f", system message type: {hex(self.system_message_type)}"
 		)
 
 	def get_status_byte(self):
@@ -48,7 +32,7 @@ class BaseMessageSystem(BaseMessage):
 		assert status_byte == cls.system_message_type, ("Invalid system message type")
 
 class MessageSystemExclusive(BaseMessageSystem):
-	system_message_type = SystemMessageType.SYSTEM_EXCLUSIVE
+	system_message_type = 0xF0
 	attributes = ["data"]
 
 	def __init__(self, data: bytes):
@@ -63,7 +47,7 @@ class MessageSystemExclusive(BaseMessageSystem):
 		_, _, remaining_data = cls._get_status_data(data)
 
 		data_length = 0
-		while remaining_data[data_length] != SystemMessageType.END_OF_EXCLUSIVE:
+		while remaining_data[data_length] != END_OF_EXCLUSIVE:
 			data_length += 1
 
 		data, remaining_data = get_data_from_bytes(remaining_data, data_length + 1)
@@ -71,10 +55,10 @@ class MessageSystemExclusive(BaseMessageSystem):
 		return cls(data[:-1]), remaining_data
 
 	def to_bytes(self) -> bytes:
-		return bytes([self.get_status_byte()]) + self.data + bytes([SystemMessageType.END_OF_EXCLUSIVE])
+		return bytes([self.get_status_byte()]) + self.data + bytes([END_OF_EXCLUSIVE])
 
 class MessageSystemTimeCodeQuarterFrame(BaseMessageSystem):
-	system_message_type = SystemMessageType.TIME_CODE_QUARTER_FRAME
+	system_message_type = 0xF1
 	attributes = ["timecode_message_type", "values"]
 
 	def __init__(self, timecode_message_type: int, values: int):
@@ -97,7 +81,7 @@ class MessageSystemTimeCodeQuarterFrame(BaseMessageSystem):
 		return bytes([self.get_status_byte(), (self.timecode_message_type << 4) | self.values])
 
 class MessageSystemSongPositionPointer(BaseMessageSystem):
-	system_message_type = SystemMessageType.SONG_POSITION_POINTER
+	system_message_type = 0xF2
 	attributes = ["position"]
 
 	def __init__(self, position: int):
@@ -117,7 +101,7 @@ class MessageSystemSongPositionPointer(BaseMessageSystem):
 		return bytes([self.get_status_byte(), self.position & 0x7F, (self.position >> 7) & 0x7F])
 
 class MessageSystemSongSelect(BaseMessageSystem):
-	system_message_type = SystemMessageType.SONG_SELECT
+	system_message_type = 0xF3
 	attributes = ["song_number"]
 
 	def __init__(self, song_number: int):
@@ -137,7 +121,7 @@ class MessageSystemSongSelect(BaseMessageSystem):
 		return bytes([self.get_status_byte(), self.song_number & 0x7F])
 
 class MessageSystemTuneRequest(BaseMessageSystem):
-	system_message_type = SystemMessageType.TUNE_REQUEST
+	system_message_type = 0xF6
 
 	@classmethod
 	def from_bytes(cls, data: bytes):
@@ -148,23 +132,19 @@ class MessageSystemTuneRequest(BaseMessageSystem):
 	def to_bytes(self) -> bytes:
 		return bytes([self.get_status_byte()])
 
+SYSTEM_MESSAGE_TYPES: Dict[int, Type[BaseMessageSystem]] = {
+	system_message_type.system_message_type: system_message_type
+	for system_message_type in [
+		MessageSystemExclusive,
+		MessageSystemTimeCodeQuarterFrame,
+		MessageSystemSongPositionPointer,
+		MessageSystemSongSelect,
+		MessageSystemTuneRequest,
+	]
+}
+
 def system_message_from_bytes(data: bytes) -> Tuple[BaseMessageSystem, bytes]:
-	message: BaseMessage = None
-	remaining_data = None
+	if data[0] in SYSTEM_MESSAGE_TYPES:
+		return SYSTEM_MESSAGE_TYPES[data[0]].from_bytes(data)
 
-	message_status = data[0]
-
-	if message_status == SystemMessageType.SYSTEM_EXCLUSIVE:
-		message, remaining_data = MessageSystemExclusive.from_bytes(data)
-	elif message_status == SystemMessageType.TIME_CODE_QUARTER_FRAME:
-		message, remaining_data = MessageSystemTimeCodeQuarterFrame.from_bytes(data)
-	elif message_status == SystemMessageType.SONG_POSITION_POINTER:
-		message, remaining_data = MessageSystemSongPositionPointer.from_bytes(data)
-	elif message_status == SystemMessageType.SONG_SELECT:
-		message, remaining_data = MessageSystemSongSelect.from_bytes(data)
-	elif message_status == SystemMessageType.TUNE_REQUEST:
-		message, remaining_data = MessageSystemTuneRequest.from_bytes(data)
-	else:
-		raise ValueError(f"Invalid system message type {message_status}")
-
-	return message, remaining_data
+	raise ValueError(f"Invalid system message type {data[0]}")

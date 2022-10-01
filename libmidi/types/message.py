@@ -9,7 +9,7 @@ from typing import Tuple
 
 from libmidi.types.messages.common import BaseMessage
 from libmidi.types.messages.channel import CHANNEL_MESSAGE_TYPES, channel_message_from_bytes
-from libmidi.types.messages.system import ALL_SYSTEM_MESSAGE_TYPES, system_message_from_bytes
+from libmidi.types.messages.system import SYSTEM_MESSAGE_TYPES, system_message_from_bytes
 from libmidi.types.messages.meta import META_MESSAGE_VALUE, meta_message_from_bytes
 
 def message_from_bytes(data: bytes, last_status_byte: int) -> Tuple[BaseMessage, bytes]:
@@ -31,7 +31,7 @@ def message_from_bytes(data: bytes, last_status_byte: int) -> Tuple[BaseMessage,
 
 	if message_type in CHANNEL_MESSAGE_TYPES:
 		message, remaining_data = channel_message_from_bytes(data)
-	elif message_status in ALL_SYSTEM_MESSAGE_TYPES:
+	elif message_status in SYSTEM_MESSAGE_TYPES:
 		message, remaining_data = system_message_from_bytes(data)
 	elif message_status == META_MESSAGE_VALUE:
 		message, remaining_data = meta_message_from_bytes(data)
