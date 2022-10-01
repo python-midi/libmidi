@@ -5,32 +5,11 @@
 #
 """MIDI channel message."""
 
-from enum import IntEnum
 import struct
-from typing import Tuple
+from typing import Dict, Tuple, Type
 
 from libmidi.utils.bytes import get_data_from_bytes
 from libmidi.types.messages.common import BaseMessage
-
-class ChannelMessageType(IntEnum):
-	"""Enum of message types."""
-	NOTE_OFF = 0x8
-	NOTE_ON = 0x9
-	AFTERTOUCH = 0xA
-	CONTROL_CHANGE = 0xB
-	PROGRAM_CHANGE = 0xC
-	CHANNEL_AFTERTOUCH = 0xD
-	PITCH_BEND = 0xE
-
-ALL_CHANNEL_MESSAGE_TYPES = [
-	ChannelMessageType.NOTE_OFF,
-	ChannelMessageType.NOTE_ON,
-	ChannelMessageType.AFTERTOUCH,
-	ChannelMessageType.CONTROL_CHANGE,
-	ChannelMessageType.PROGRAM_CHANGE,
-	ChannelMessageType.CHANNEL_AFTERTOUCH,
-	ChannelMessageType.PITCH_BEND,
-]
 
 class BaseMessageChannel(BaseMessage):
 	"""
@@ -39,7 +18,7 @@ class BaseMessageChannel(BaseMessage):
 	Since all channel messages have the same structure (at least a channel data +
 	8 bit data bytes), we can commonize a lot of methods.
 	"""
-	channel_message_type: ChannelMessageType
+	channel_message_type: int
 
 	def __init__(self, channel: int):
 		"""Initialize a channel message."""
@@ -49,7 +28,7 @@ class BaseMessageChannel(BaseMessage):
 		"""Return a string representation of the message."""
 		return (
 			super().__str__()
-			+ f", channel message type: {self.channel_message_type.name}"
+			+ f", channel message type: {hex(self.channel_message_type)}"
 			+ f", channel: {self.channel}"
 		)
 
@@ -91,7 +70,7 @@ class BaseMessageChannel(BaseMessage):
 		return status_byte.to_bytes(1, 'big', signed=False) + message_data
 
 class MessageNoteOff(BaseMessageChannel):
-	channel_message_type = ChannelMessageType.NOTE_OFF
+	channel_message_type = 0x8
 	attributes = ['note', 'velocity']
 
 	def __init__(self, channel: int, note: int, velocity: int):
@@ -102,7 +81,7 @@ class MessageNoteOff(BaseMessageChannel):
 		self.velocity = velocity
 
 class MessageNoteOn(BaseMessageChannel):
-	channel_message_type = ChannelMessageType.NOTE_ON
+	channel_message_type = 0x9
 	attributes = ['note', 'velocity']
 
 	def __init__(self, channel: int, note: int, velocity: int):
@@ -113,7 +92,7 @@ class MessageNoteOn(BaseMessageChannel):
 		self.velocity = velocity
 
 class MessageAftertouch(BaseMessageChannel):
-	channel_message_type = ChannelMessageType.AFTERTOUCH
+	channel_message_type = 0xA
 	attributes = ['note', 'value']
 
 	def __init__(self, channel: int, note: int, value: int):
@@ -124,7 +103,7 @@ class MessageAftertouch(BaseMessageChannel):
 		self.value = value
 
 class MessageControlChange(BaseMessageChannel):
-	channel_message_type = ChannelMessageType.CONTROL_CHANGE
+	channel_message_type = 0xB
 	attributes = ['control', 'value']
 
 	def __init__(self, channel: int, control: int, value: int):
@@ -135,7 +114,7 @@ class MessageControlChange(BaseMessageChannel):
 		self.value = value
 
 class MessageProgramChange(BaseMessageChannel):
-	channel_message_type = ChannelMessageType.PROGRAM_CHANGE
+	channel_message_type = 0xC
 	attributes = ['program']
 
 	def __init__(self, channel: int, program: int):
@@ -145,7 +124,7 @@ class MessageProgramChange(BaseMessageChannel):
 		self.program = program
 
 class MessageChannelAftertouch(BaseMessageChannel):
-	channel_message_type = ChannelMessageType.CHANNEL_AFTERTOUCH
+	channel_message_type = 0xD
 	attributes = ['value']
 
 	def __init__(self, channel: int, value: int):
@@ -155,7 +134,7 @@ class MessageChannelAftertouch(BaseMessageChannel):
 		self.value = value
 
 class MessagePitchBend(BaseMessageChannel):
-	channel_message_type = ChannelMessageType.PITCH_BEND
+	channel_message_type = 0xE
 	attributes = ['value_lsb', 'value_msb']
 
 	def __init__(self, channel: int, value_lsb: int, value_msb: int):
@@ -167,30 +146,24 @@ class MessagePitchBend(BaseMessageChannel):
 
 		self.value = (value_msb << 7) | value_lsb
 
+CHANNEL_MESSAGE_TYPES: Dict[int, Type[BaseMessageChannel]] = {
+	channel_message_type.channel_message_type: channel_message_type
+	for channel_message_type in [
+		MessageNoteOff,
+		MessageNoteOn,
+		MessageAftertouch,
+		MessageControlChange,
+		MessageProgramChange,
+		MessageChannelAftertouch,
+		MessagePitchBend,
+	]
+}
+
 def channel_message_from_bytes(data: bytes) -> Tuple[BaseMessageChannel, bytes]:
 	"""Get a channel message from bytes."""
-	message: BaseMessage = None
-	remaining_data = None
+	message_type = data[0] >> 4
 
-	message_status = data[0]
+	if message_type in CHANNEL_MESSAGE_TYPES:
+		return CHANNEL_MESSAGE_TYPES[message_type].from_bytes(data)
 
-	message_type = message_status >> 4
-
-	if message_type == ChannelMessageType.NOTE_OFF:
-		message, remaining_data = MessageNoteOff.from_bytes(data)
-	elif message_type == ChannelMessageType.NOTE_ON:
-		message, remaining_data = MessageNoteOn.from_bytes(data)
-	elif message_type == ChannelMessageType.AFTERTOUCH:
-		message, remaining_data = MessageAftertouch.from_bytes(data)
-	elif message_type == ChannelMessageType.CONTROL_CHANGE:
-		message, remaining_data = MessageControlChange.from_bytes(data)
-	elif message_type == ChannelMessageType.PROGRAM_CHANGE:
-		message, remaining_data = MessageProgramChange.from_bytes(data)
-	elif message_type == ChannelMessageType.CHANNEL_AFTERTOUCH:
-		message, remaining_data = MessageChannelAftertouch.from_bytes(data)
-	elif message_type == ChannelMessageType.PITCH_BEND:
-		message, remaining_data = MessagePitchBend.from_bytes(data)
-	else:
-		raise ValueError(f"Unknown channel message type: 0x{message_type:x}")
-
-	return message, remaining_data
+	raise ValueError(f"Invalid channel message type {message_type}")
