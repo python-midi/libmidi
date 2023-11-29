@@ -1,4 +1,4 @@
-HomeBot's documentation
+libmidi's documentation
 =======================
 
 Reference
