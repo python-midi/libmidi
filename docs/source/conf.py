@@ -16,6 +16,9 @@ release = libmidi.__version__
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.doctest',
+    'sphinx.ext.duration',
+    'sphinx.ext.intersphinx',
 ]
 
 autosummary_generate = True
@@ -27,6 +30,13 @@ autodoc_default_options = {
     'undoc-members': True,
 }
 
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3/', None),
+    'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
+}
+
+intersphinx_disabled_domains = ['std']
+
 # -- Options for HTML output -------------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
@@ -37,7 +47,6 @@ import types
 
 def setup(app):
     app.connect('autodoc-skip-member', special_methods_callback)
-    app.outdir = "_build/html"
 
 def special_methods_callback(app, what, name, obj, skip, options):
     """
