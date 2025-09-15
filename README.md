@@ -26,7 +26,7 @@ from libmidi.types import MidiFile
 MidiFile.from_file("midi.mid")
 ```
 
-Complete documentation is at [Read the Docs](https://libmidi.readthedocs.io)
+Complete documentation at [Read the Docs](https://libmidi.readthedocs.io)
 
 ## License
 
